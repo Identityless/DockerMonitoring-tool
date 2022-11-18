@@ -55,14 +55,13 @@ public class Main {
         conName = conName.substring(2, conName.length()-1);
         String cmd = "curl -s --unix-socket /var/run/docker.sock http://v1.41/containers/"+conName+"/stats";
         String statString = getJsonString(cmd, false);
-        Map<String, Object> cpustats;
 
         Map<String, Object> statJson = objectMapper.readValue(statString, new TypeReference<Map<String, Object>>() {});
 
         Map<String, Object> networkInfo = (Map<String, Object>) data.get("NetworkSettings");
         networkInfo = (Map<String, Object>) networkInfo.get("Networks");
         networkInfo = (Map<String, Object>) networkInfo.get("bridge");
-        cpustats = (Map<String, Object>) statJson.get("cpu_stats");
+        Map<String, Object> cpu_stats = (Map<String, Object>) statJson.get("cpu_stats");
 
         JSONObject conJsonObject = new JSONObject();
 
@@ -75,13 +74,50 @@ public class Main {
         System.out.println("Process ID : " +conId);
         conJsonObject.put("process_id", conId);
 
-        System.out.println("CPU : "+cpustats.get("online_cpus").toString());
-        conJsonObject.put("cpu", cpustats.get("online_cpus").toString());
+        int online_cpus = Integer.parseInt(cpu_stats.get("online_cpus").toString());
+        System.out.println("CPU : "+online_cpus);
+        conJsonObject.put("cpu", online_cpus);
 
-        Map<String,Object> memory = (Map<String,Object>)statJson.get("memory_stats");
-        System.out.println("Available Memory : "+memory.get("limit"));
-        conJsonObject.put("available_memory", memory.get("limit"));
 
+        Map<String, Object> cpu_usage = (Map<String, Object>) cpu_stats.get("cpu_usage");
+        Map<String, Object> precpu_stats = (Map<String, Object>) statJson.get("precpu_stats");
+        Map<String, Object> precpu_usage = (Map<String, Object>) precpu_stats.get("cpu_usage");
+
+        long cpu_delta = Long.parseLong(cpu_usage.get("total_usage").toString())-Long.parseLong(precpu_usage.get("total_usage").toString());
+        long system_cpu_usage = Long.parseLong(cpu_stats.get("system_cpu_usage").toString());
+        System.out.println(precpu_stats);
+        long system_precpu_usage = Long.parseLong(precpu_stats.get("system_cpu_usage").toString()); // 않이 이거 외 않되?
+        long system_cpu_delta = system_cpu_usage - system_precpu_usage;
+        double cpu_usage_percent = ((double)cpu_delta/system_cpu_delta)*online_cpus*100.0;
+
+        System.out.println("CPU Usage % : "+cpu_usage_percent);
+        conJsonObject.put("cpu_usage%", cpu_usage_percent);
+
+
+//        cpu_delta = cpu_stats.cpu_usage.total_usage - precpu_stats.cpu_usage.total_usage
+//        system_cpu_delta = cpu_stats.system_cpu_usage - precpu_stats.system_cpu_usage
+//        number_cpus = lenght(cpu_stats.cpu_usage.percpu_usage) or cpu_stats.online_cpus
+//        CPU usage % = (cpu_delta / system_cpu_delta) * number_cpus * 100.0
+
+
+        Map<String,Object> memory_stats = (Map<String,Object>)statJson.get("memory_stats");
+        Map<String,Object> stats = (Map<String, Object>) memory_stats.get("stats");
+        long used_memory = Long.parseLong(memory_stats.get("usage").toString())-Long.parseLong(stats.get("cache").toString()); //memory_stats.usage - memory_stats.stats.cache
+        long available_memory = Long.parseLong(memory_stats.get("limit").toString())/8;
+        System.out.println("Available Memory : "+available_memory+" bytes");
+        conJsonObject.put("available_memory", available_memory);
+
+        System.out.println("Used Memory :"+used_memory+" bytes");
+        conJsonObject.put("used_momory", used_memory);
+
+        System.out.println("Used Memory % : "+(((double)used_memory/available_memory)*100)+" %");
+        conJsonObject.put("used_memory_%", (((double)used_memory/available_memory)*100));
+
+
+
+//        used_memory = memory_stats.usage - memory_stats.stats.cache
+//        available_memory = memory_stats.limit
+//        Memory usage % = (used_memory / available_memory) * 100.0
 
 
 
