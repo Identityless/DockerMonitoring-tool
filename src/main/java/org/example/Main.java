@@ -20,6 +20,8 @@ public class Main {
     private static OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
     private static List<Map<String, Object>> conDatas;
     private static List<JSONObject> conJson;
+    private static long Rx = -1;
+    private static long Tx = -1;
     public static void main(String[] args) throws JsonProcessingException {
         String cmd = "curl -s --unix-socket /var/run/docker.sock http://v1.41/containers/json";
         String jsonString = getJsonString(cmd, true);
@@ -84,13 +86,15 @@ public class Main {
         Map<String, Object> precpu_usage = (Map<String, Object>) precpu_stats.get("cpu_usage");
 
         long cpu_delta = Long.parseLong(cpu_usage.get("total_usage").toString())-Long.parseLong(precpu_usage.get("total_usage").toString());
+        long total_usage = Long.parseLong(cpu_usage.get("total_usage").toString());
+        long pretotal_usage = Long.parseLong(precpu_usage.get("total_usage").toString());
         long system_cpu_usage = Long.parseLong(cpu_stats.get("system_cpu_usage").toString());
-        System.out.println(precpu_stats);
-        long system_precpu_usage = Long.parseLong(precpu_stats.get("system_cpu_usage").toString()); // 않이 이거 외 않되?
-        long system_cpu_delta = system_cpu_usage - system_precpu_usage;
-        double cpu_usage_percent = ((double)cpu_delta/system_cpu_delta)*online_cpus*100.0;
+        //System.out.println(precpu_stats);
+        //long system_precpu_usage = Long.parseLong(precpu_stats.get("system_cpu_usage").toString()); // 않이 이거 외 않되? -> 스펙에는 나와있는 필드가 실제로는 없다?!?!
+        //long system_cpu_delta = system_cpu_usage - system_precpu_usage;
+        double cpu_usage_percent = ((double)total_usage-pretotal_usage)*online_cpus*100.0/system_cpu_usage;
 
-        System.out.println("CPU Usage % : "+cpu_usage_percent);
+        System.out.println("CPU Usage % : "+cpu_usage_percent+" %");
         conJsonObject.put("cpu_usage%", cpu_usage_percent);
 
 
@@ -114,13 +118,24 @@ public class Main {
         conJsonObject.put("used_memory_%", (((double)used_memory/available_memory)*100));
 
 
-
 //        used_memory = memory_stats.usage - memory_stats.stats.cache
 //        available_memory = memory_stats.limit
 //        Memory usage % = (used_memory / available_memory) * 100.0
 
+        Map<String, Object> network = (Map<String, Object>)statJson.get("networks");
+        Map<String, Object> eth0 = (Map<String, Object>) network.get("eth0");
 
 
+
+
+
+
+    }
+
+    private static void calRxTx(Map<String, Object> eth0) {
+        if(Rx == -1) {
+            System.out.println("");
+        }
     }
 
     private static String getJsonString(String cmd, boolean mode){
