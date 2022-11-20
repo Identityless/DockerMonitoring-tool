@@ -18,14 +18,13 @@ public class Main {
     private static JSONObject jsonObject = new JSONObject();
     private static OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
     private static List<Map<String, Object>> conDatas;
-    private static List<JSONObject> conJson;
     private static NetworkInfo[] networkInfos = new NetworkInfo[100];
     private static double cpuUsageofAllContainers;
     private static long momoryUsageofAllContainers;
-    private static String path = "/home/identityless/result.txt";
-    public static void main(String[] args) throws IOException {
+    private static PrintWriter printWriter;
+    private static String path = "/home/identityless/result.txt"; // 환경에 따라 유동적으로 변경해야 함.
+    public static void main(String[] args) throws IOException, InterruptedException {
         String cmd = "curl -s --unix-socket /var/run/docker.sock http://v1.41/containers/json";
-        PrintWriter printWriter = new PrintWriter(new FileWriter(path, true));
         String jsonString = getJsonString(cmd, true);
         int count;
         List<JSONObject> conjsonObjectList = null;
@@ -33,6 +32,7 @@ public class Main {
         //System.out.println(conDatas);
 
         while(true) {
+            printWriter = new PrintWriter(new FileWriter(path, true));
             conjsonObjectList = new ArrayList<>();
             System.out.println("--------------------Monitoring Start--------------------");
             getHostinfo();
@@ -43,10 +43,10 @@ public class Main {
             for (Map<String, Object> data : conDatas) {
                 System.out.println("------------Container" + count + "------------");
                 conjsonObjectList.add(getContainerinfo(data, count));
-
                 System.out.println("----------------------------------");
                 count++;
             }
+
             jsonObject.put("containers", conjsonObjectList);
             System.out.println("CPU Available : "+((Runtime.getRuntime().availableProcessors()/2*100)-cpuUsageofAllContainers)+" %");
             jsonObject.put("cpu_available", ((Runtime.getRuntime().availableProcessors()/2*100)-cpuUsageofAllContainers));
@@ -57,6 +57,7 @@ public class Main {
             printWriter.println(jsonObject.toJSONString());
             printWriter.flush();
             printWriter.close();
+            Thread.sleep(2);
         }
 
     }
