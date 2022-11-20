@@ -1,10 +1,11 @@
 plugins {
     id 'java'
-    id 'application'
 }
 
 group 'org.example'
 version '1.0-SNAPSHOT'
+apply plugin: 'application'
+mainClassName='org.example.Main'
 
 repositories {
     mavenCentral()
