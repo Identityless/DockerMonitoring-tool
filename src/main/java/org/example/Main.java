@@ -33,7 +33,7 @@ public class Main {
         int count;
         List<JSONObject> conjsonObjectList = null;
         conDatas = objectMapper.readValue(jsonString, new TypeReference<List<Map<String, Object>>>() {});
-        path = scanner.nextLine();
+        path = scanner.next();
         //System.out.println(conDatas);
 
         while(true) {
