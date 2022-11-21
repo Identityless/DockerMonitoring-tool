@@ -12,6 +12,7 @@ import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 public class Main {
     private static ObjectMapper objectMapper = new ObjectMapper(); // json string을 Map 형식의 데이터로 전환시켜주는 객
@@ -22,13 +23,17 @@ public class Main {
     private static double cpuUsageofAllContainers; // 컨테이너들의 cpu 사용량의 합을 저장하기 위한 필드
     private static long momoryUsageofAllContainers; // 컨테이너들의 메모리 사용량의 합을 저장하기 위한 필드
     private static PrintWriter printWriter; // 파일 출력용 객체
+
+    private static Scanner scanner = new Scanner(System.in);
     private static String path = "/home/identityless/result.txt"; // 로그 파일 저장을 위한 경로. 환경에 따라 유동적으로 변경해야 함.
     public static void main(String[] args) throws IOException, InterruptedException {
         String cmd = "curl -s --unix-socket /var/run/docker.sock http://v1.41/containers/json";
+        System.out.print("로그 파일이 출력 될 경로 입력 (절대 경로) : ");
         String jsonString = getJsonString(cmd, true);
         int count;
         List<JSONObject> conjsonObjectList = null;
         conDatas = objectMapper.readValue(jsonString, new TypeReference<List<Map<String, Object>>>() {});
+        path = scanner.nextLine();
         //System.out.println(conDatas);
 
         while(true) {
