@@ -22,7 +22,7 @@ public class Main {
     private static double cpuUsageofAllContainers; // 컨테이너들의 cpu 사용량의 합을 저장하기 위한 필드
     private static long momoryUsageofAllContainers; // 컨테이너들의 메모리 사용량의 합을 저장하기 위한 필드
     private static PrintWriter printWriter; // 파일 출력용 객체
-    private static String path = "/home/identityless/result.txt"; // 로그 파일 저장을 위한 경로. 환경에 따라 유동적으로 변경해야 함.
+    private static String path = "~/result.txt"; // 로그 파일 저장을 위한 경로. 환경에 따라 유동적으로 변경해야 함.
     public static void main(String[] args) throws IOException, InterruptedException {
         String cmd = "curl -s --unix-socket /var/run/docker.sock http://v1.41/containers/json";
         String jsonString = getJsonString(cmd, true);
