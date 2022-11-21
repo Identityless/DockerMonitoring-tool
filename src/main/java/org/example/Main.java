@@ -24,7 +24,7 @@ public class Main {
     private static long momoryUsageofAllContainers; // 컨테이너들의 메모리 사용량의 합을 저장하기 위한 필드
     private static PrintWriter printWriter; // 파일 출력용 객체
 
-    //private static Scanner scanner = new Scanner(System.in);
+    //private static Scanner scanner = new Scanner(System.in); // 스캐너 객체 때문에 빌드 오류 발생
     private static String path = "/home/identityless/result.txt"; // 로그 파일 저장을 위한 경로. 환경에 따라 유동적으로 변경해야 함.
     public static void main(String[] args) throws IOException, InterruptedException {
         String cmd = "curl -s --unix-socket /var/run/docker.sock http://v1.41/containers/json";
